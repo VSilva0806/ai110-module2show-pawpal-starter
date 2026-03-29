@@ -1,96 +1,103 @@
 from dataclasses import dataclass, field
 from typing import List
-from datetime import datetime, time
-
-
-@dataclass
-class Pet:
-    """Represents a pet with care information and management methods."""
-    name: str
-    species: str
-    breed: str
-    age: int
-    medications: List[str] = field(default_factory=list)
-    feeding_schedule: List[time] = field(default_factory=list)
-    grooming_interval: int = 30  # days
-    
-    def add_medication(self, med: str) -> None:
-        """Adds a medication reminder."""
-        pass
-    
-    def update_feeding_schedule(self, times: List[time]) -> None:
-        """Sets meal times."""
-        pass
-    
-    def get_care_summary(self) -> str:
-        """Returns overview of pet's needs."""
-        pass
+from datetime import datetime
 
 
 @dataclass
 class Task:
-    """Represents a care task for a pet."""
+    """Represents a single activity with description, time, frequency, and completion status."""
     task_id: str
-    title: str
-    task_type: str  # walk / appointment / grooming / medication
-    due_datetime: datetime
+    description: str
+    due_time: datetime
+    frequency: str  # once / daily / weekly / monthly
     is_completed: bool = False
-    linked_pet: Pet = None
     
     def mark_complete(self) -> None:
         """Marks task as done."""
         pass
     
-    def reschedule(self, new_datetime: datetime) -> None:
+    def reschedule(self, new_time: datetime) -> None:
         """Updates the due time."""
         pass
     
-    def is_overdue(self) -> bool:
-        """Returns true if past due and not complete."""
+    def get_details(self) -> str:
+        """Returns task details."""
         pass
 
 
 @dataclass
-class Schedule:
-    """Manages tasks and time blocks for the owner."""
-    owner_name: str
+class Pet:
+    """Stores pet details and a list of tasks."""
+    pet_id: str
+    name: str
+    species: str
+    breed: str
+    age: int
     tasks: List[Task] = field(default_factory=list)
-    time_blocks: List[dict] = field(default_factory=list)
     
     def add_task(self, task: Task) -> None:
-        """Adds a new task."""
+        """Adds a task to the pet."""
         pass
     
-    def add_time_block(self, start: time, end: time, label: str) -> None:
-        """Blocks out time (e.g. 'Work 9–5')."""
+    def remove_task(self, task_id: str) -> None:
+        """Removes a task from the pet."""
         pass
     
-    def get_tasks_for_day(self, date) -> List[Task]:
-        """Filters tasks by date."""
+    def get_tasks(self) -> List[Task]:
+        """Returns all tasks for this pet."""
         pass
     
-    def prioritize_tasks(self) -> List[Task]:
-        """Sorts tasks around blocked time."""
+    def get_pet_info(self) -> str:
+        """Returns pet information."""
         pass
 
 
 @dataclass
-class Reminder:
-    """Handles notifications for tasks."""
-    reminder_id: str
-    linked_task: Task
-    trigger_time: datetime
-    reminder_type: str  # feeding / medication / grooming / walk
-    is_sent: bool = False
+class Owner:
+    """Manages multiple pets and provides access to all their tasks."""
+    owner_id: str
+    owner_name: str
+    pets: List[Pet] = field(default_factory=list)
     
-    def send_reminder(self) -> None:
-        """Triggers the alert to the user."""
+    def add_pet(self, pet: Pet) -> None:
+        """Adds a pet to the owner's collection."""
         pass
     
-    def snooze(self, minutes: int) -> None:
-        """Delays the reminder."""
+    def remove_pet(self, pet_id: str) -> None:
+        """Removes a pet from the owner's collection."""
         pass
     
-    def generate_message(self) -> str:
-        """Builds the reminder text (e.g. 'Time to feed Buddy!')."""
+    def get_all_pets(self) -> List[Pet]:
+        """Returns all pets owned."""
+        pass
+    
+    def get_all_tasks(self) -> List[Task]:
+        """Returns all tasks across all pets."""
+        pass
+    
+    def get_pet_tasks(self, pet_id: str) -> List[Task]:
+        """Returns tasks for a specific pet."""
+        pass
+
+
+@dataclass
+class Scheduler:
+    """The 'Brain' that retrieves, organizes, and manages tasks across pets."""
+    owner: Owner
+    tasks: List[Task] = field(default_factory=list)
+    
+    def retrieve_tasks(self) -> List[Task]:
+        """Retrieves all tasks from the owner's pets."""
+        pass
+    
+    def organize_tasks(self) -> List[Task]:
+        """Organizes tasks by priority or due time."""
+        pass
+    
+    def manage_tasks(self) -> None:
+        """Manages task execution and scheduling."""
+        pass
+    
+    def get_tasks_by_pet(self, pet_id: str) -> List[Task]:
+        """Returns tasks for a specific pet."""
         pass
