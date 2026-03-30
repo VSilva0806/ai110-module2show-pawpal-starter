@@ -5,13 +5,17 @@
 **a. Initial design**
 
 - Briefly describe your initial UML design.
+My UML design consists of 4 classes: Scheduler, Owner, Pet, and Task. Each class is contained within one another, where task is contained in pet and scheduler, pet is contained in owner, and scheduler manages owner.
+
 - What classes did you include, and what responsibilities did you assign to each?
+I chose four classes: Scheduler, Owner, Pet, and Task. Scheduler collects tasks from the owner and organizes it neatly and according to the Owner's relative schedule. Owner class consists of name of the owner and his/her pets owned. Pet class holds date about the pet (age, name, breed, and tasks). Task class contains information about a specific task, its time, and its completion. 
 
 **b. Design changes**
 
 - Did your design change during implementation?
+Yes, I made several changes to my design. 
 - If yes, describe at least one change and why you made it.
-
+One change I made was removing the task field from scheduler as it already existed in Owner through Pets. I made sure the schedular recieves tasks from the owner class directly. I made this change to reduce redundancy and to ensure tasks do not get out of sync which could cause bugs. 
 ---
 
 ## 2. Scheduling Logic and Tradeoffs
