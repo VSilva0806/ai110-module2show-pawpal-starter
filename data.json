@@ -1,0 +1,64 @@
+{
+  "owner_id": "owner_001",
+  "owner_name": "Jordan",
+  "pets": [
+    {
+      "pet_id": "pet_001",
+      "name": "Mochi",
+      "species": "dog",
+      "breed": "Unspecified",
+      "age": 3,
+      "tasks": []
+    },
+    {
+      "pet_id": "pet_001",
+      "name": "Mochi",
+      "species": "dog",
+      "breed": "Unspecified",
+      "age": 3,
+      "tasks": [
+        {
+          "task_id": "task_001",
+          "description": "Morning walk",
+          "due_time": "2026-03-31T08:00:00",
+          "frequency": "once",
+          "pet_id": "pet_001",
+          "is_completed": false,
+          "parent_task_id": null,
+          "priority": "MEDIUM",
+          "task_type": "WALKING"
+        },
+        {
+          "task_id": "task_002",
+          "description": "Feed",
+          "due_time": "2026-03-31T09:20:00",
+          "frequency": "daily",
+          "pet_id": "pet_001",
+          "is_completed": false,
+          "parent_task_id": null,
+          "priority": "HIGH",
+          "task_type": "FEEDING"
+        },
+        {
+          "task_id": "task_003",
+          "description": "Groom",
+          "due_time": "2026-03-31T09:20:00",
+          "frequency": "daily",
+          "pet_id": "pet_001",
+          "is_completed": false,
+          "parent_task_id": null,
+          "priority": "HIGH",
+          "task_type": "GROOMING"
+        }
+      ]
+    },
+    {
+      "pet_id": "pet_002",
+      "name": "Jake",
+      "species": "dog",
+      "breed": "Unspecified",
+      "age": 3,
+      "tasks": []
+    }
+  ]
+}

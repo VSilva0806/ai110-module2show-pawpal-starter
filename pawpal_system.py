@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
 from datetime import datetime, timedelta
 from enum import Enum
+import json
 
 
 class TaskStatus(Enum):
@@ -14,6 +15,54 @@ class TaskStatus(Enum):
     PENDING = "pending"
     COMPLETED = "completed"
     OVERDUE = "overdue"
+
+
+class TaskPriority(Enum):
+    """Enumeration of task priority levels."""
+    LOW = 1
+    MEDIUM = 2
+    HIGH = 3
+    
+    def get_emoji(self) -> str:
+        """Returns emoji representation of priority."""
+        if self.value == 3:
+            return "🔴"  # Red circle for High
+        elif self.value == 2:
+            return "🟡"  # Yellow circle for Medium
+        else:
+            return "🟢"  # Green circle for Low
+    
+    def __str__(self) -> str:
+        """Returns string representation of priority."""
+        return self.name.capitalize()
+
+
+class TaskType(Enum):
+    """Enumeration of task types with emoji representations."""
+    FEEDING = ("🍽️", "Feeding")
+    WALKING = ("🚶", "Walking")
+    GROOMING = ("💇", "Grooming")
+    PLAYTIME = ("🎾", "Playtime")
+    MEDICATION = ("💊", "Medication")
+    EXERCISE = ("🏃", "Exercise")
+    SLEEPING = ("😴", "Sleeping")
+    BATHING = ("🛁", "Bathing")
+    VETERINARY = ("🏥", "Veterinary")
+    TRAINING = ("🧠", "Training")
+    CLEANING = ("🧹", "Cleaning")
+    OTHER = ("📝", "Other")
+    
+    def get_emoji(self) -> str:
+        """Returns emoji representation of task type."""
+        return self.value[0]
+    
+    def get_label(self) -> str:
+        """Returns label representation of task type."""
+        return self.value[1]
+    
+    def __str__(self) -> str:
+        """Returns string representation of task type."""
+        return self.get_label()
 
 
 @dataclass
@@ -26,6 +75,8 @@ class Task:
     pet_id: str = ""  # Reference to the pet this task belongs to
     is_completed: bool = False
     parent_task_id: Optional[str] = None  # Reference to parent task if this is a recurring instance
+    priority: TaskPriority = TaskPriority.MEDIUM  # Priority level for weighted sorting
+    task_type: TaskType = TaskType.OTHER  # Task type with emoji representation
     
     def mark_complete(self) -> None:
         """Marks task as done."""
@@ -124,6 +175,94 @@ class Owner:
             if pet.pet_id == pet_id:
                 return pet
         return None
+    
+    def save_to_json(self, filepath: str = "data.json") -> None:
+        """
+        Saves the owner, pets, and all tasks to a JSON file.
+        
+        Args:
+            filepath: Path to the JSON file to save to
+        """
+        data = {
+            "owner_id": self.owner_id,
+            "owner_name": self.owner_name,
+            "pets": []
+        }
+        
+        for pet in self.pets:
+            pet_data = {
+                "pet_id": pet.pet_id,
+                "name": pet.name,
+                "species": pet.species,
+                "breed": pet.breed,
+                "age": pet.age,
+                "tasks": []
+            }
+            
+            for task in pet.tasks:
+                task_data = {
+                    "task_id": task.task_id,
+                    "description": task.description,
+                    "due_time": task.due_time.isoformat(),
+                    "frequency": task.frequency,
+                    "pet_id": task.pet_id,
+                    "is_completed": task.is_completed,
+                    "parent_task_id": task.parent_task_id,
+                    "priority": task.priority.name,
+                    "task_type": task.task_type.name
+                }
+                pet_data["tasks"].append(task_data)
+            
+            data["pets"].append(pet_data)
+        
+        with open(filepath, 'w') as f:
+            json.dump(data, f, indent=2)
+    
+    @staticmethod
+    def load_from_json(filepath: str = "data.json") -> Optional["Owner"]:
+        """
+        Loads owner, pets, and tasks from a JSON file.
+        
+        Args:
+            filepath: Path to the JSON file to load from
+            
+        Returns:
+            Owner object with all pets and tasks, or None if file doesn't exist
+        """
+        try:
+            with open(filepath, 'r') as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            return None
+        
+        owner = Owner(owner_id=data["owner_id"], owner_name=data["owner_name"])
+        
+        for pet_data in data.get("pets", []):
+            pet = Pet(
+                pet_id=pet_data["pet_id"],
+                name=pet_data["name"],
+                species=pet_data["species"],
+                breed=pet_data["breed"],
+                age=pet_data["age"]
+            )
+            
+            for task_data in pet_data.get("tasks", []):
+                task = Task(
+                    task_id=task_data["task_id"],
+                    description=task_data["description"],
+                    due_time=datetime.fromisoformat(task_data["due_time"]),
+                    frequency=task_data["frequency"],
+                    pet_id=task_data["pet_id"],
+                    is_completed=task_data["is_completed"],
+                    parent_task_id=task_data["parent_task_id"],
+                    priority=TaskPriority[task_data["priority"]],
+                    task_type=TaskType[task_data.get("task_type", "OTHER")]
+                )
+                pet.add_task(task)
+            
+            owner.add_pet(pet)
+        
+        return owner
 
 
 @dataclass
@@ -136,10 +275,23 @@ class Scheduler:
         return self.owner.get_all_tasks()
     
     def organize_tasks(self) -> List[Task]:
-        """Organizes tasks by due time (earliest first), excluding completed tasks."""
+        """Organizes tasks by priority (high to low), then by due time (earliest first), excluding completed tasks."""
+        tasks = self.retrieve_tasks()
+        pending_tasks = [task for task in tasks if not task.is_completed]
+        # Sort by priority (descending) then by time (ascending)
+        return sorted(pending_tasks, key=lambda task: (-task.priority.value, task.due_time))
+    
+    def organize_tasks_by_time(self) -> List[Task]:
+        """Organizes tasks by due time only (earliest first), excluding completed tasks."""
         tasks = self.retrieve_tasks()
         pending_tasks = [task for task in tasks if not task.is_completed]
         return sorted(pending_tasks, key=lambda task: task.due_time)
+    
+    def organize_tasks_by_priority(self) -> List[Task]:
+        """Organizes tasks by priority only (high to low), excluding completed tasks."""
+        tasks = self.retrieve_tasks()
+        pending_tasks = [task for task in tasks if not task.is_completed]
+        return sorted(pending_tasks, key=lambda task: -task.priority.value)
     
     def manage_tasks(self) -> None:
         """Manages task execution and scheduling (placeholder for complex logic)."""
@@ -330,8 +482,12 @@ class Scheduler:
         Returns:
             List of tuples containing conflicting task pairs.
         """
-        pet_tasks = sorted(self.filter_tasks(pet_id=pet_id, status="pending"), 
-                          key=lambda task: task.due_time)
+        # Get all incomplete tasks (both pending and overdue) for conflict detection
+        all_tasks = self.retrieve_tasks()
+        pet_tasks = sorted([
+            task for task in all_tasks 
+            if task.pet_id == pet_id and not task.is_completed
+        ], key=lambda task: task.due_time)
         
         # O(n) algorithm: only check adjacent tasks
         return [
@@ -390,9 +546,9 @@ class Scheduler:
                 
                 for task1, task2 in conflicts:
                     time_diff = abs((task1.due_time - task2.due_time).total_seconds() / 60)
-                    print(f"   • '{task1.description}' at {task1.due_time.strftime('%H:%M')}")
+                    print(f"   • '{task1.description}' at {task1.due_time.strftime('%I:%M %p')}")
                     print(f"     conflicts with")
-                    print(f"     '{task2.description}' at {task2.due_time.strftime('%H:%M')}")
+                    print(f"     '{task2.description}' at {task2.due_time.strftime('%I:%M %p')}")
                     print(f"     (only {time_diff:.0f} minute(s) apart)\n")
         
         return conflicts_found

@@ -4,7 +4,7 @@ Demo script showcasing the pet care scheduling system.
 """
 
 from datetime import datetime, timedelta
-from pawpal_system import Owner, Pet, Task, Scheduler
+from pawpal_system import Owner, Pet, Task, Scheduler, TaskPriority, TaskType
 
 
 def main():
@@ -27,21 +27,27 @@ def main():
         task_id="task_001",
         description="Feed Buddy breakfast",
         due_time=now.replace(hour=8, minute=0),
-        frequency="daily"
+        frequency="daily",
+        priority=TaskPriority.HIGH,
+        task_type=TaskType.FEEDING
     )
     
     task2 = Task(
         task_id="task_002",
         description="Walk Buddy in the park",
         due_time=now.replace(hour=10, minute=30),
-        frequency="daily"
+        frequency="daily",
+        priority=TaskPriority.MEDIUM,
+        task_type=TaskType.WALKING
     )
     
     task3 = Task(
         task_id="task_003",
         description="Give Buddy medication",
         due_time=now.replace(hour=10, minute=15),  # Deliberately scheduled close to task2
-        frequency="daily"
+        frequency="daily",
+        priority=TaskPriority.HIGH,
+        task_type=TaskType.MEDICATION
     )
     
     # Whiskers' task
@@ -49,14 +55,18 @@ def main():
         task_id="task_004",
         description="Feed Whiskers dinner",
         due_time=now.replace(hour=18, minute=0),
-        frequency="daily"
+        frequency="daily",
+        priority=TaskPriority.HIGH,
+        task_type=TaskType.FEEDING
     )
     
     task5 = Task(
         task_id="task_005",
         description="Clean Whiskers' litter box",
         due_time=now.replace(hour=19, minute=0),
-        frequency="daily"
+        frequency="daily",
+        priority=TaskPriority.LOW,
+        task_type=TaskType.CLEANING
     )
     
     # Add tasks to pets
@@ -93,9 +103,11 @@ def main():
                     pet_name = pet.name
                     break
             
-            time_str = task.due_time.strftime("%H:%M")
+            time_str = task.due_time.strftime("%I:%M %p")
             status = "✓" if task.is_completed else "•"
-            print(f"{i}. [{status}] {time_str} - {task.description} ({pet_name})")
+            priority_emoji = task.priority.get_emoji()
+            type_emoji = task.task_type.get_emoji()
+            print(f"{i}. [{status}] {time_str} {type_emoji} {priority_emoji} {task.priority} - {task.description} ({pet_name})")
     
     print("\n" + "-"*70)
     print(f"Total Tasks: {len(organized_tasks)} | Pets: {len(owner.get_all_pets())}")
@@ -118,8 +130,10 @@ def main():
                 pet_name = pet.name
                 break
         
-        time_str = task.due_time.strftime("%H:%M")
-        print(f"{i}. {time_str} - {task.description} ({pet_name})")
+        time_str = task.due_time.strftime("%I:%M %p")
+        priority_emoji = task.priority.get_emoji()
+        type_emoji = task.task_type.get_emoji()
+        print(f"{i}. {time_str} {type_emoji} {priority_emoji} {task.priority} - {task.description} ({pet_name})")
     
     print("\n")
 
